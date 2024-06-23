@@ -1,0 +1,34 @@
+import socket
+from concurrent.futures import ThreadPoolExecutor
+
+def scan_port(ip, port):
+    """Scan a single port on the given IP address."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket.setdefaulttimeout(1)  # Set a timeout of 1 second
+    result = sock.connect_ex((ip, port))  # Connect to the port
+    sock.close()
+    if result == 0:
+        return port, True  # Port is open
+    else:
+        return port, False  # Port is closed
+
+def scan_ports(ip, ports):
+    """Scan a range of ports on the given IP address."""
+    open_ports = []
+    with ThreadPoolExecutor(max_workers=100) as executor:
+        results = executor.map(lambda p: scan_port(ip, p), ports)
+        for port, is_open in results:
+            if is_open:
+                open_ports.append(port)
+    return open_ports
+
+if __name__ == "__main__":
+    target_ip = input("Enter the target IP address: ")
+    target_ports = range(1, 1025)  # Scan ports 1 through 1024
+    print(f"Scanning {target_ip} for open ports...")
+    
+    open_ports = scan_ports(target_ip, target_ports)
+    if open_ports:
+        print(f"Open ports on {target_ip}: {open_ports}")
+    else:
+        print(f"No open ports found on {target_ip}.")
