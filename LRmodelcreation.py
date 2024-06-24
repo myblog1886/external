@@ -289,6 +289,23 @@ coefficients = pd.DataFrame(regressor.coef_, X.columns, columns=['Coefficient'])
 print(coefficients)
 
 
+# In[79]:
+
+
+# Display the intercept
+intercept = regressor.intercept_
+print(f"Model Intercept: {intercept}")
+
+
+# In[80]:
+
+
+plt.figure(figsize=(10, 5))
+sns.barplot(x=coefficients.index, y=coefficients['Coefficient'])
+plt.title('Model Coefficients')
+plt.show()
+
+
 # In[77]:
 
 
