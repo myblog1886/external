@@ -1,0 +1,69 @@
+import pandas as pd
+
+# Sample data
+data = {
+    "TransactionID": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "Amount": [100, 200, 3000, 150, 400, 10000, 120, 7000, 250, 15000],
+    "Time": ["2024-07-01 10:00:00", "2024-07-01 10:30:00", "2024-07-01 11:00:00", "2024-07-01 11:30:00", 
+             "2024-07-01 12:00:00", "2024-07-01 12:30:00", "2024-07-01 13:00:00", "2024-07-01 13:30:00", 
+             "2024-07-01 14:00:00", "2024-07-01 14:30:00"],
+    "Location": ["New York", "New York", "Los Angeles", "Chicago", "New York", "San Francisco", "Chicago", 
+                 "Los Angeles", "New York", "San Francisco"],
+    "CardNumber": ["1234", "1234", "5678", "9101", "1234", "1121", "9101", "5678", "1234", "1121"],
+    "IsFraud": [0, 0, 1, 0, 0, 1, 0, 1, 0, 1]
+}
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Save to CSV
+df.to_csv("transaction_data.csv", index=False)
+
+# analysis on the csv file 
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+import numpy as np
+
+# Load dataset
+df = pd.read_csv("transaction_data.csv")
+
+# Convert Time column to datetime
+df['Time'] = pd.to_datetime(df['Time'])
+
+# Basic Statistical Analysis
+def basic_statistical_analysis(df):
+    threshold_amount = 5000
+    df['Anomaly_Stat'] = df['Amount'] > threshold_amount
+    return df
+
+# Isolation Forest Analysis
+def isolation_forest_analysis(df):
+    # Features for the model
+    X = df[['Amount']]
+    
+    # Fit the model
+    clf = IsolationForest(contamination=0.2, random_state=42)
+    clf.fit(X)
+    
+    # Predict anomalies
+    df['Anomaly_IF'] = clf.predict(X)
+    df['Anomaly_IF'] = df['Anomaly_IF'].apply(lambda x: 1 if x == -1 else 0)
+    return df
+
+# Heuristic Rules
+def heuristic_rules(df):
+    df['Anomaly_Heuristic'] = np.where((df['Amount'] > 8000) | 
+                                       (df['Location'].isin(['San Francisco'])) | 
+                                       (df['CardNumber'].duplicated(keep=False)), 1, 0)
+    return df
+
+# Run analyses
+df = basic_statistical_analysis(df)
+df = isolation_forest_analysis(df)
+df = heuristic_rules(df)
+
+# Print results
+print(df)
+
+# Save results to CSV
+df.to_csv("transaction_data_with_anomalies.csv", index=False)
